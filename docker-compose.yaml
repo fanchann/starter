@@ -1,0 +1,13 @@
+version: "2"
+
+services:
+  mysql_database:
+    container_name: mysql_database
+    image: mysql:8.1.0
+    ports:
+      - "3307:3306"
+  postgres_database:
+    container_name: postgres_database
+    image: postgres:11-bullseye
+    ports:
+      - "5432:5432"
