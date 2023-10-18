@@ -1,13 +1,18 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"starter/internal/config"
 )
 
-type users struct {
-	Name  string
-	Email string
+var conf config.IConfig
+var configurationFile *string
+
+func init() {
+	configurationFile = flag.String("c", ".env", "configuration file not found!")
+	flag.Parse()
+	conf = config.NewLoadConfig(*configurationFile)
 }
 
 func main() {
@@ -29,7 +34,7 @@ func main() {
 	// cfg := config.NewLoadEnvConfig()
 	// fmt.Printf("cfg.Get(\"DB_USERNAME\"): %v\n", cfg.Get("DB_USERNAME"))
 
-	cfg := config.NewLoadloadConfig("config.toml")
-	fmt.Printf("cfg.Get(\"APP_NAME\"): %v\n", cfg.Get("APP_NAME"))
+	//conf := config.NewLoadConfig(".env")
+	fmt.Printf("conf.Get(\"APP_NAME\"): %v\n", conf.Get("APP_NAME"))
 
 }

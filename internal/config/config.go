@@ -2,6 +2,10 @@ package config
 
 import "github.com/spf13/viper"
 
+// var (
+// 	v *viper.Viper
+// )
+
 type IConfig interface {
 	Get(key string) string
 }
@@ -12,10 +16,10 @@ func (c *loadConfig) Get(key string) string {
 	return viper.GetString(key)
 }
 
-func NewLoadloadConfig(file ...string) IConfig {
-	v := viper.New()
-	v.SetConfigFile(file[0])
-	err := v.ReadInConfig()
+func NewLoadConfig(file ...string) IConfig {
+	viper.SetConfigFile(file[0])
+
+	err := viper.ReadInConfig()
 	if err != nil {
 		panic(err)
 	}
