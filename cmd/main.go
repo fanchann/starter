@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
-	"fmt"
+	"log"
 	"starter/internal/config"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 var conf config.IConfig
@@ -16,17 +20,24 @@ func init() {
 }
 
 func main() {
-	db := config.NewMysqlDatabaseConnection().Connect(conf)
-	d, err := db.DB()
+	// db := config.NewMysqlDatabaseConnection().Connect(conf).(*gorm.DB)
+	// d, err := db.DB()
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// err2 := d.Ping()
+	// if err2 != nil {
+	// 	panic(err2)
+	// }
+	//fmt.Println("success connect!")
+
+	mongo := config.NewMongoDatabaseConnection().Connect(conf).(*mongo.Client)
+	err := mongo.Ping(context.Background(), readpref.Primary())
 	if err != nil {
-		panic(err)
+		log.Fatal("Couldn't connect to the database", err)
+	} else {
+		log.Println("Connected!")
 	}
-
-	err2 := d.Ping()
-	if err2 != nil {
-		panic(err2)
-	}
-
-	fmt.Println("success connect!")
 
 }

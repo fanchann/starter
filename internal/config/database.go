@@ -1,20 +1,49 @@
 package config
 
 import (
+	"context"
 	"fmt"
+	"log"
+	"time"
 
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 type IDatabaseConnection interface {
-	Connect(cfg IConfig) *gorm.DB
+	Connect(cfg IConfig) interface{}
+}
+
+type mongoDatabaseConnection struct{}
+
+func (m mongoDatabaseConnection) Connect(cfg IConfig) interface{} {
+	mongoUri := fmt.Sprintf("mongodb://%s:%s", cfg.Get("MONGO_HOST"), cfg.Get("MONGO_PORT"))
+	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	clientOptions := options.Client().ApplyURI(mongoUri)
+	client, err := mongo.NewClient(clientOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = client.Connect(ctxWithTimeout)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return client
+}
+
+func NewMongoDatabaseConnection() IDatabaseConnection {
+	return &mongoDatabaseConnection{}
 }
 
 type mysqlDatabaseConnection struct{}
 
-func (m *mysqlDatabaseConnection) Connect(cfg IConfig) *gorm.DB {
+func (m *mysqlDatabaseConnection) Connect(cfg IConfig) interface{} {
 	// get environment
 	dbUsername := cfg.Get("DB_USERNAME")
 	dbPassword := cfg.Get("DB_PASSWORD")
@@ -25,7 +54,7 @@ func (m *mysqlDatabaseConnection) Connect(cfg IConfig) *gorm.DB {
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	return db
 }
@@ -36,7 +65,7 @@ func NewMysqlDatabaseConnection() IDatabaseConnection {
 
 type postgresDatabaseConnection struct{}
 
-func (p *postgresDatabaseConnection) Connect(cfg IConfig) *gorm.DB {
+func (p *postgresDatabaseConnection) Connect(cfg IConfig) interface{} {
 	// get environment
 	dbUsername := cfg.Get("DB_USERNAME")
 	dbPassword := cfg.Get("DB_PASSWORD")
@@ -48,7 +77,7 @@ func (p *postgresDatabaseConnection) Connect(cfg IConfig) *gorm.DB {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	return db
 }
